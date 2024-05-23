@@ -204,3 +204,62 @@ ggplot(data.frame(ds = post_2020_data$ds, residuals = residuals_post_2020), aes(
 
 
 ```
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(prophet)
+library(ggplot2)
+
+# Assuming prophet_data is already loaded and contains the necessary data
+
+# Split data into pre-2020 and post-2020 periods
+pre_2020_data <- prophet_data %>% filter(ds < as.Date("2020-01-01"))
+post_2020_data <- prophet_data %>% filter(ds >= as.Date("2020-01-01"))
+
+# Define training and test periods for post-2020 data
+train_post_2020_data <- post_2020_data %>% filter(ds < as.Date("2024-01-01"))
+test_post_2020_data <- post_2020_data %>% filter(ds >= as.Date("2024-01-01"))
+
+# Initialize the Prophet model with holidays
+holidays <- data.frame(
+  ds = as.Date(c('2020-12-25', '2021-01-01', '2021-07-04', '2020-11-26', '2021-11-25')),  # Example dates including Thanksgiving
+  holiday = c('Christmas', 'New Year', 'Independence Day', 'Thanksgiving', 'Thanksgiving')
+)
+
+# Model for post-2020 period using training data
+model_post_2020 <- prophet(holidays = holidays)
+
+# Fit the model on the training data
+model_post_2020 <- fit.prophet(model_post_2020, train_post_2020_data)
+
+# Create a dataframe to hold predictions for the test period
+future_post_2020_test <- make_future_dataframe(model_post_2020, periods = nrow(test_post_2020_data))
+
+# Make predictions on the test data
+forecast_post_2020_test <- predict(model_post_2020, future_post_2020_test)
+
+# Combine actual test data with predictions for evaluation
+actual_vs_forecast_test <- test_post_2020_data %>%
+  left_join(forecast_post_2020_test %>% select(ds, yhat), by = "ds") %>%
+  rename(actual = y, forecast = yhat)
+
+# Visualize the actual vs forecasted values for the test period
+ggplot(actual_vs_forecast_test, aes(x = ds)) +
+  geom_line(aes(y = actual, color = "Actual")) +
+  geom_line(aes(y = forecast, color = "Forecast")) +
+  labs(title = "Actual vs Forecasted Ridership Post-2020 (Test Period)", x = "Date", y = "Total Rides") +
+  scale_color_manual(values = c("Actual" = "blue", "Forecast" = "red")) +
+  theme_minimal()
+
+# Evaluate the model performance using cross-validation
+cv_post_2020 <- cross_validation(model_post_2020, initial = 365, period = 90, horizon = 180, units = 'days')
+performance_post_2020 <- performance_metrics(cv_post_2020)
+
+# Display performance metrics
+print("Post-2020 Model Performance Metrics:")
+print(performance_post_2020)
+
+# Plot cross-validation performance
+plot_cross_validation_metric(cv_post_2020, metric = 'rmse')
+
+```
