@@ -15,11 +15,11 @@ library(zoo)
 ```
 
 ```{r}
-setwd("D:/University of Chicago/Courses/ADSP 31006 IP02 Time Series Analysis and Forecasting/Final Project")
+#setwd("D:/University of Chicago/Courses/ADSP 31006 IP02 Time Series Analysis and Forecasting/Final #Project")
 ```
 
 ```{r}
-tmp <- read.csv("CTA_-_Ridership_-_Daily_Boarding_Totals_20240512.csv")
+tmp <- read.csv("CTA.csv")
 head(tmp)
 ```
 
