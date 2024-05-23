@@ -16,7 +16,7 @@ library(readr)
 library(prophet)
 
 # Load the dataset
-file_path <- '/Users/devanshiledwani/Downloads/CTA_-_Ridership_-_Daily_Boarding_Totals_20240512.csv'
+file_path <- 'CTA.csv'
 ridership_data <- read_csv(file_path)
 
 # Convert service_date to Date type
